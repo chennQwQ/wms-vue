@@ -4,6 +4,7 @@ node_modules
 dist
 .npmrc
 .cache
+coverage
 
 tests/server/static
 tests/server/static/upload
