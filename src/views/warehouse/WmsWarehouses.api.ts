@@ -11,6 +11,10 @@ enum Api {
   deleteBatch = '/warehouse/wmsWarehouses/deleteBatch',
   importExcel = '/warehouse/wmsWarehouses/importExcel',
   exportXls = '/warehouse/wmsWarehouses/exportXls',
+  //启用
+  enable = '/warehouse/wmsWarehouses/enable',
+  //禁用
+  disable = '/warehouse/wmsWarehouses/disable',
 }
 /**
  * 导出api
@@ -61,4 +65,42 @@ export const batchDelete = (params, handleSuccess) => {
 export const saveOrUpdate = (params, isUpdate) => {
   let url = isUpdate ? Api.edit : Api.save;
   return defHttp.post({url: url, params});
+}
+/**
+ * 启用
+ * @param params 
+ * @param handleSuccess 
+ */
+export const enable = (params, handleSuccess) =>{
+  createConfirm({
+    iconType: "warning",
+    title: '确认启用',
+    content: '是否启用选中数据',
+    okText: '确认',
+    cancelText: '取消',
+    onOk: () => {
+      return defHttp.put({url: Api.enable, data: params}, {joinParamsToUrl: true}).then(() => {
+        handleSuccess;
+      })
+    }
+  })
+}
+/**
+ * 禁用
+ * @param params 
+ * @param handleSuccess 
+ */
+export const disable = (params, handleSuccess) =>{
+  createConfirm({
+    iconType: "warning",
+    title: '确认禁用',
+    content: '是否禁用选中数据',
+    okText: '确认',
+    cancelText: '取消',
+    onOk: () => {
+      return defHttp.put({url: Api.disable, data: params}, {joinParamsToUrl: true}).then(() => {
+        handleSuccess;
+      })
+    }
+  })
 }

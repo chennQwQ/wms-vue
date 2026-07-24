@@ -11,6 +11,8 @@ enum Api {
   deleteBatch = '/warehouse/wmsStorageZones/deleteBatch',
   importExcel = '/warehouse/wmsStorageZones/importExcel',
   exportXls = '/warehouse/wmsStorageZones/exportXls',
+  enable = '/warehouse/wmsStorageZones/enable',
+  disable = '/warehouse/wmsStorageZones/disable',
 }
 /**
  * 导出api
@@ -61,4 +63,40 @@ export const batchDelete = (params, handleSuccess) => {
 export const saveOrUpdate = (params, isUpdate) => {
   let url = isUpdate ? Api.edit : Api.save;
   return defHttp.post({url: url, params});
+}
+
+/**
+ * 启用
+ */
+export const enable = (params, handleSuccess) => {
+  createConfirm({
+    iconType: 'warning',
+    title: '确认启用',
+    content: '是否启用选中数据',
+    okText: '确认',
+    cancelText: '取消',
+    onOk: () => {
+      return defHttp.put({url: Api.enable, data: params}, {joinParamsToUrl: true}).then(() => {
+        handleSuccess();
+      });
+    }
+  });
+}
+
+/**
+ * 禁用
+ */
+export const disable = (params, handleSuccess) => {
+  createConfirm({
+    iconType: 'warning',
+    title: '确认禁用',
+    content: '是否禁用选中数据',
+    okText: '确认',
+    cancelText: '取消',
+    onOk: () => {
+      return defHttp.put({url: Api.disable, data: params}, {joinParamsToUrl: true}).then(() => {
+        handleSuccess();
+      });
+    }
+  });
 }

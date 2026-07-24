@@ -3,6 +3,23 @@ import {FormSchema} from '/@/components/Table';
 import { rules} from '/@/utils/helper/validator';
 import { render } from '/@/utils/common/renderUtils';
 import { getWeekMonthQuarterYear } from '/@/utils';
+import { ref } from 'vue';
+import { list as warehouseList } from './WmsWarehouses.api';
+
+const warehouseNameMap = ref<Record<string, string>>({});
+
+export async function loadWarehouseOptions() {
+  try {
+    const res = await warehouseList({ pageNo: 1, pageSize: 999 });
+    const records = res?.records || [];
+    warehouseNameMap.value = records.reduce((map, item) => {
+      map[item.id] = item.warehouseName;
+      return map;
+    }, {});
+  } catch (error) {
+    warehouseNameMap.value = {};
+  }
+}
 //列表数据
 export const columns: BasicColumn[] = [
    {
@@ -18,26 +35,45 @@ export const columns: BasicColumn[] = [
    {
     title: '库区类型',
     align:"center",
-    dataIndex: 'zoneType'
+    dataIndex: 'zoneType_dictText'
    },
    {
-    title: '状态: 创建,禁用, 启用',
+    title: '状态',
     align:"center",
-    dataIndex: 'status_dictText'
+    dataIndex: 'status',
+    customRender: ({ text, record }) => {
+      return record.status_dictText || render.renderDict(text, 'wms_status');
+    },
    },
    {
-    title: '是否可售库存 0-否, 1-是',
+    title: '是否可售库存',
     align:"center",
     dataIndex: 'isSellable_dictText'
    },
    {
     title: '所属仓库',
     align:"center",
-    dataIndex: 'warehouseId'
+    dataIndex: 'warehouseName',
+    customRender: ({ text, record }) => {
+      return text || warehouseNameMap.value[record.warehouseId] || record.warehouseId;
+    },
    },
 ];
 //查询数据
 export const searchFormSchema: FormSchema[] = [
+  {
+    label: '所属仓库',
+    field: 'warehouseId',
+    component: 'ApiSelect',
+    componentProps: {
+      api: warehouseList,
+      resultField: 'records',
+      labelField: 'warehouseName',
+      valueField: 'id',
+      showSearch: true,
+      optionFilterProp: 'label',
+    },
+  },
 ];
 //表单数据
 export const formSchema: FormSchema[] = [
@@ -64,7 +100,10 @@ export const formSchema: FormSchema[] = [
   {
     label: '库区类型',
     field: 'zoneType',
-    component: 'Input',
+    component: 'JDictSelectTag',
+    componentProps:{
+      dictCode:"zone_type"
+    },
     dynamicRules: ({model,schema}) => {
           return [
                  { required: true, message: '请输入库区类型!'},
@@ -76,7 +115,7 @@ export const formSchema: FormSchema[] = [
     field: 'status',
     component: 'JDictSelectTag',
     componentProps:{
-        dictCode:"dict_item_status"
+        dictCode:"wms_status"
      },
     dynamicRules: ({model,schema}) => {
           return [
@@ -100,10 +139,18 @@ export const formSchema: FormSchema[] = [
   {
     label: '所属仓库',
     field: 'warehouseId',
-    component: 'Input',
+    component: 'ApiSelect',
+    componentProps: {
+      api: warehouseList,
+      resultField: 'records',
+      labelField: 'warehouseName',
+      valueField: 'id',
+      showSearch: true,
+      optionFilterProp: 'label',
+    },
     dynamicRules: ({model,schema}) => {
           return [
-                 { required: true, message: '请输入所属仓库!'},
+                 { required: true, message: '请选择所属仓库!'},
           ];
      },
   },
@@ -120,8 +167,8 @@ export const formSchema: FormSchema[] = [
 export const superQuerySchema = {
   zoneCode: {title: '库区编码',order: 0,view: 'text', type: 'string',},
   zoneName: {title: '库区名称',order: 1,view: 'text', type: 'string',},
-  zoneType: {title: '库区类型',order: 2,view: 'text', type: 'string',},
-  status: {title: '状态: 创建,禁用, 启用',order: 3,view: 'list', type: 'string',dictCode: 'dict_item_status',},
+  zoneType: {title: '库区类型',order: 2,view: 'list', type: 'string',dictCode: 'zone_type',},
+  status: {title: '状态: 创建,禁用, 启用',order: 3,view: 'list', type: 'string',dictCode: 'wms_status',},
   isSellable: {title: '是否可售库存 0-否, 1-是',order: 4,view: 'list', type: 'string',dictCode: 'yn',},
   warehouseId: {title: '所属仓库',order: 5,view: 'link_table', type: 'string',},
 };

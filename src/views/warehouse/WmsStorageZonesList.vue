@@ -42,13 +42,14 @@
   import {useModal} from '/@/components/Modal';
   import { useListPage } from '/@/hooks/system/useListPage'
   import WmsStorageZonesModal from './components/WmsStorageZonesModal.vue'
-  import {columns, searchFormSchema, superQuerySchema} from './WmsStorageZones.data';
-  import {list, deleteOne, batchDelete, getImportUrl,getExportUrl} from './WmsStorageZones.api';
+  import {columns, searchFormSchema, superQuerySchema, loadWarehouseOptions} from './WmsStorageZones.data';
+  import {list, deleteOne, batchDelete, getImportUrl,getExportUrl, enable, disable} from './WmsStorageZones.api';
   import { downloadFile } from '/@/utils/common/renderUtils';
   import { useUserStore } from '/@/store/modules/user';
   const queryParam = reactive<any>({});
   const checkedKeys = ref<Array<string | number>>([]);
   const userStore = useUserStore();
+  loadWarehouseOptions();
   //注册model
   const [registerModal, {openModal}] = useModal();
   //注册table数据
@@ -69,7 +70,7 @@
               ],
             },
            actionColumn: {
-               width: 120,
+               width: 220,
                fixed:'right'
             },
             beforeFetch: (params) => {
@@ -137,6 +138,18 @@
      await deleteOne({id: record.id}, handleSuccess);
    }
    /**
+    * 启用事件
+    */
+  async function handleEnable(record) {
+     await enable({id: record.id}, handleSuccess);
+   }
+   /**
+    * 禁用事件
+    */
+  async function handleDisable(record) {
+     await disable({id: record.id}, handleSuccess);
+   }
+   /**
     * 批量删除事件
     */
   async function batchHandleDelete() {
@@ -157,6 +170,14 @@
            label: '编辑',
            onClick: handleEdit.bind(null, record),
            auth: 'warehouse:wms_storage_zones:edit'
+         },
+         {
+           label: '启用',
+           onClick: handleEnable.bind(null, record),
+         },
+         {
+           label: '禁用',
+           onClick: handleDisable.bind(null, record),
          }
        ]
    }

@@ -3,6 +3,21 @@ import {FormSchema} from '/@/components/Table';
 import { rules} from '/@/utils/helper/validator';
 import { render } from '/@/utils/common/renderUtils';
 import { getWeekMonthQuarterYear } from '/@/utils';
+import { list as warehouseList } from "@/views/warehouse/WmsWarehouses.api";
+import { list as storageZoneList } from "@/views/warehouse/WmsStorageZones.api";
+
+async function getZoneOptions(warehouseId) {
+  if (!warehouseId) {
+    return [];
+  }
+  const res = await storageZoneList({ warehouseId, pageNo: 1, pageSize: 999 });
+  const records = res?.records || [];
+  return records.map((item) => ({
+    label: item.zoneName,
+    value: item.id,
+  }));
+}
+
 //列表数据
 export const columns: BasicColumn[] = [
    {
@@ -136,20 +151,46 @@ export const formSchema: FormSchema[] = [
   {
     label: '所属仓库',
     field: 'warehouseId',
-    component: 'Input',
+    component: 'ApiSelect',
+    componentProps: ({ formModel, formActionType }) => {
+      return {
+        api: warehouseList,
+        resultField: 'records',
+        labelField: 'warehouseName',
+        valueField: 'id',
+        showSearch: true,
+        optionFilterProp: 'label',
+        onChange: async (value) => {
+          formModel.zoneId = undefined;
+          const options = await getZoneOptions(value);
+          formActionType.updateSchema({
+            field: 'zoneId',
+            component: 'Select',
+            componentProps: {
+              options,
+              placeholder: '请选择所属库区',
+            },
+          });
+        },
+      };
+    },
     dynamicRules: ({model,schema}) => {
           return [
-                 { required: true, message: '请输入所属仓库!'},
+                 { required: true, message: '请选择所属仓库!'},
           ];
      },
   },
   {
     label: '所属库区',
     field: 'zoneId',
-    component: 'Input',
+    component: 'Select',
+    componentProps: {
+      options: [],
+      placeholder: '请先选择所属仓库',
+    },
     dynamicRules: ({model,schema}) => {
           return [
-                 { required: true, message: '请输入所属库区!'},
+                 { required: true, message: '请选择所属库区!'},
           ];
      },
   },

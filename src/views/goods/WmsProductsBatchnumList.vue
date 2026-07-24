@@ -4,9 +4,9 @@
    <BasicTable @register="registerTable" :rowSelection="rowSelection">
      <!--插槽:table标题-->
       <template #tableTitle>
-          <a-button type="primary" v-auth="'warehouse:wms_warehouses:add'" @click="handleAdd" preIcon="ant-design:plus-outlined"> 新增</a-button>
-          <a-button  type="primary" v-auth="'warehouse:wms_warehouses:exportXls'" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
-          <j-upload-button type="primary" v-auth="'warehouse:wms_warehouses:importExcel'" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
+          <a-button type="primary" v-auth="'goods:wms_products_batchnum:add'" @click="handleAdd" preIcon="ant-design:plus-outlined"> 新增</a-button>
+          <a-button  type="primary" v-auth="'goods:wms_products_batchnum:exportXls'" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
+          <j-upload-button type="primary" v-auth="'goods:wms_products_batchnum:importExcel'" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
           <a-dropdown v-if="selectedRowKeys.length > 0">
               <template #overlay>
                 <a-menu>
@@ -16,7 +16,7 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button v-auth="'warehouse:wms_warehouses:deleteBatch'">批量操作
+              <a-button v-auth="'goods:wms_products_batchnum:deleteBatch'">批量操作
                 <Icon icon="mdi:chevron-down"></Icon>
               </a-button>
         </a-dropdown>
@@ -32,18 +32,18 @@
       </template>
     </BasicTable>
     <!-- 表单区域 -->
-    <WmsWarehousesModal @register="registerModal" @success="handleSuccess"></WmsWarehousesModal>
+    <WmsProductsBatchnumModal @register="registerModal" @success="handleSuccess"></WmsProductsBatchnumModal>
   </div>
 </template>
 
-<script lang="ts" name="warehouse-wmsWarehouses" setup>
+<script lang="ts" name="goods-wmsProductsBatchnum" setup>
   import {ref, reactive, computed, unref} from 'vue';
   import {BasicTable, useTable, TableAction} from '/@/components/Table';
   import {useModal} from '/@/components/Modal';
   import { useListPage } from '/@/hooks/system/useListPage'
-  import WmsWarehousesModal from './components/WmsWarehousesModal.vue'
-  import {columns, searchFormSchema, superQuerySchema} from './WmsWarehouses.data';
-  import {list, deleteOne, batchDelete, getImportUrl,getExportUrl} from './WmsWarehouses.api';
+  import WmsProductsBatchnumModal from './components/WmsProductsBatchnumModal.vue'
+  import {columns, searchFormSchema, superQuerySchema} from './WmsProductsBatchnum.data';
+  import {list, deleteOne, batchDelete, getImportUrl,getExportUrl} from './WmsProductsBatchnum.api';
   import { downloadFile } from '/@/utils/common/renderUtils';
   import { useUserStore } from '/@/store/modules/user';
   const queryParam = reactive<any>({});
@@ -54,7 +54,7 @@
   //注册table数据
   const { prefixCls,tableContext,onExportXls,onImportXls } = useListPage({
       tableProps:{
-           title: '仓库表',
+           title: '商品批次表',
            api: list,
            columns,
            canResize:false,
@@ -77,7 +77,7 @@
             },
       },
        exportConfig: {
-            name:"仓库表",
+            name:"商品批次表",
             url: getExportUrl,
             params: queryParam,
           },
@@ -121,26 +121,6 @@
      });
    }
    /**
-    * 启用事件
-    */
-   function handleEnable(record: Recordable) {
-     openModal(true, {
-       record,
-       isUpdate: true,
-       showFooter: true,
-     });
-   }
-   /**
-    * 禁用事件
-    */
-   function handleDisable(record: Recordable) {
-     openModal(true, {
-       record,
-       isUpdate: true,
-       showFooter: true,
-     });
-   }
-   /**
     * 详情
    */
   function handleDetail(record: Recordable) {
@@ -176,17 +156,7 @@
          {
            label: '编辑',
            onClick: handleEdit.bind(null, record),
-           auth: 'warehouse:wms_warehouses:edit'
-         },
-         {
-           label: '启用',
-           onClick: handleEnable.bind(null, record),
-          //  auth: 'warehouse:wms_warehouses:enable'
-         },
-         {
-           label: '禁用',
-           onClick: handleDisable.bind(null, record),
-          //  auth: 'warehouse:wms_warehouses:disable'
+           auth: 'goods:wms_products_batchnum:edit'
          }
        ]
    }
@@ -205,7 +175,7 @@
              confirm: handleDelete.bind(null, record),
              placement: 'topLeft',
            },
-           auth: 'warehouse:wms_warehouses:delete'
+           auth: 'goods:wms_products_batchnum:delete'
          }
        ]
    }
