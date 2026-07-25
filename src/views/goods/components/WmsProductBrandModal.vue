@@ -10,6 +10,8 @@
     import {BasicForm, useForm} from '/@/components/Form/index';
     import {formSchema} from '../WmsProductBrand.data';
     import {saveOrUpdate} from '../WmsProductBrand.api';
+    import { useGlobSetting } from '/@/hooks/setting';
+    const glob = useGlobSetting;
     // Emits声明
     const emit = defineEmits(['register','success']);
     const isUpdate = ref(true);
@@ -33,6 +35,9 @@
             await setFieldsValue({
                 ...data.record,
             });
+            await setFieldsValue({
+              logo: glob.viewUrl+data.record.logo,
+            })
         }
         // 隐藏底部时禁用整个表单
        setProps({ disabled: !data?.showFooter })

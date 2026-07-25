@@ -28,14 +28,16 @@
 
 <script lang="ts" name="system-ossfile" setup>
   //ts语法
-  import { ref, computed, unref } from 'vue';
+  import { computed } from 'vue';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { columns, searchFormSchema } from './ossfile.data';
   import { list, deleteFile, getOssUrl, getMinioUrl } from './ossfile.api';
   import { useGlobSetting } from '/@/hooks/setting';
   import { getToken } from '/@/utils/auth';
-  import {encryptByBase64} from "@/utils/cipher";
+  import { encryptByBase64 } from '/@/utils/cipher';
+  import { createImgPreview } from '/@/components/Preview';
+  import { isPreviewableImageUrl } from './ossfile.utils';
 
   const { createMessage } = useMessage();
   const glob = useGlobSetting();
@@ -79,17 +81,15 @@
    */
   function handleView(record) {
     if (record && record.url) {
-      console.log('glob.onlineUrl', glob.viewUrl);
+      if (isPreviewableImageUrl(record.url)) {
+        createImgPreview({ imageList: [record.url], maskClosable: true });
+        return;
+      }
+
       //update-begin---author:scott ---date:2024-06-03  for：【TV360X-952】升级到kkfileview4.1.0---
-      // let filePath = encodeURIComponent(record.url);
       let url = encodeURIComponent(encryptByBase64(record.url));
-      // //文档采用pdf预览高级模式
-      // if(filePath.endsWith(".pdf") || filePath.endsWith(".doc") || filePath.endsWith(".docx")){
-      //   filePath = filePath
-      // }
       let previewUrl = `${glob.viewUrl}?url=` + url;
       //update-end---author:scott ---date:2024-06-03  for：【TV360X-952】升级到kkfileview4.1.0---
-      
       window.open(previewUrl, '_blank');
     }
   }
