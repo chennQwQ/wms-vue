@@ -107,7 +107,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {ref, watch, computed, unref} from 'vue';
+import {ref, computed} from 'vue';
   import { useRootSetting } from '/@/hooks/setting/useRootSetting';
   import { CountTo } from '/@/components/CountTo/index';
   import { Icon } from '/@/components/Icon';
@@ -115,7 +115,8 @@ import {ref, watch, computed, unref} from 'vue';
 
   import Bar from '/@/components/chart/Bar.vue';
   import RankList from '/@/components/chart/RankList.vue';
-import {defHttp} from "@/utils/http/axios";
+import { getInboundTrend, getOutboundTrend, getOwnerOutboundRanking, getTodoTasks } from '../api';
+import { isTodoCardData, mapMonthlyTrend, mapOwnerRanking, normalizeBigscreenList } from '../bigscreenData.utils';
 
 
 
@@ -130,7 +131,7 @@ import {defHttp} from "@/utils/http/axios";
     action?: string;
     footer?: string;
   }
-const growCardList= ref( [
+const growCardList = ref<GrowCardItem[]>([
     {
       title: '待收货任务',
       icon: 'visit-count|svg',
@@ -165,19 +166,7 @@ const growCardList2= ref( [
 
 
 const table = {
-  dataSource: [
-    { reBizCode: '1', type: '转移登记', acceptBy: '张三', acceptDate: '2019-01-22', curNode: '任务分派', flowRate: 60 },
-    { reBizCode: '2', type: '抵押登记', acceptBy: '李四', acceptDate: '2019-01-23', curNode: '领导审核', flowRate: 30 },
-    { reBizCode: '3', type: '转移登记', acceptBy: '王武', acceptDate: '2019-01-25', curNode: '任务处理', flowRate: 20 },
-    { reBizCode: '4', type: '转移登记', acceptBy: '赵楼', acceptDate: '2019-11-22', curNode: '部门审核', flowRate: 80 },
-    { reBizCode: '5', type: '转移登记', acceptBy: '钱就', acceptDate: '2019-12-12', curNode: '任务分派', flowRate: 90 },
-    { reBizCode: '6', type: '转移登记', acceptBy: '孙吧', acceptDate: '2019-03-06', curNode: '任务处理', flowRate: 10 },
-    { reBizCode: '7', type: '抵押登记', acceptBy: '周大', acceptDate: '2019-04-13', curNode: '任务分派', flowRate: 100 },
-    { reBizCode: '8', type: '抵押登记', acceptBy: '吴二', acceptDate: '2019-05-09', curNode: '任务上报', flowRate: 50 },
-    { reBizCode: '9', type: '抵押登记', acceptBy: '郑爽', acceptDate: '2019-07-12', curNode: '任务处理', flowRate: 63 },
-    { reBizCode: '20', type: '抵押登记', acceptBy: '林有', acceptDate: '2019-12-12', curNode: '任务打回', flowRate: 59 },
-    { reBizCode: '11', type: '转移登记', acceptBy: '码云', acceptDate: '2019-09-10', curNode: '任务签收', flowRate: 87 },
-  ],
+  dataSource: [],
   columns: [
     {
       title: '业务号',
@@ -228,124 +217,9 @@ const table = {
       type: Boolean,
     },
   });
-  const rankList = ref([
-    {
-      name: '白鹭岛 1号店',
-      total: 1234.56 ,
-    },
-    {
-      name: '白鹭岛 2号店',
-      total: 1274.56 ,
-    },
-    {
-      name: '白鹭岛 1号店',
-      total: 1234.56 ,
-    },
-    {
-      name: '白鹭岛 2号店',
-      total: 1274.56 ,
-    },
-    {
-      name: '白鹭岛 1号店',
-      total: 1234.56 ,
-    }
-
-  ]);
-
-  const inOrderBarData = ref([
-    {
-      name: `1月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `3月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `4月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `5月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `6月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `7月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `8月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `9月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `10 月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `11月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `12月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-
-  ]);
-  const outOrderBarData = ref([
-    {
-      name: `1月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `3月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `4月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `5月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `6月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `7月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `8月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `9月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `10 月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `11月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-    {
-      name: `12月`,
-      value: Math.floor(Math.random() * 1000) + 200,
-    },
-
-  ]);
+  const rankList = ref<Array<{ name: string; total: number }>>([]);
+  const inOrderBarData = ref<Array<{ name: string; value: number }>>([]);
+  const outOrderBarData = ref<Array<{ name: string; value: number }>>([]);
   const seriesColor = computed(() => {
     return getThemeColor.value
   })
@@ -389,65 +263,49 @@ rankListData();
 /**
  * 获取仓库信息
  */
-async function getTodoTaskList(params?){
-  return defHttp.get({ url: '/bigscreen/todo-tasks', params });
-}
-/**
- *加载待办任务
- */
 async function todoTaskList() {
-  const result = await getTodoTaskList();
-  console.log('records', result)
-  if (result && result.length > 0) {
-     growCardList.value=result;
+  try {
+    const result = normalizeBigscreenList<GrowCardItem>(await getTodoTasks());
+    if (isTodoCardData(result)) {
+      growCardList.value = result.slice(0, 3);
+      growCardList2.value = result.slice(3, 4);
+    } else {
+      growCardList.value = [];
+      growCardList2.value = [];
+    }
+  } catch (error) {
+    growCardList.value = [];
+    growCardList2.value = [];
   }
-}
-/**
- * 获取入库趋势
- */
-async function getInOrderData(params?){
-   return defHttp.get({ url: '/bigscreen/todo-tasks', params });
 }
 /**
  * 加载入库趋势
  */
 async function inOrderData() {
-  const result = await getInOrderData();
-  console.log('records', result)
-  if (result && result.length > 0) {
-    inOrderBarData.value=result;
+  try {
+    inOrderBarData.value = mapMonthlyTrend(await getInboundTrend());
+  } catch (error) {
+    inOrderBarData.value = [];
   }
-}
-/**
- * 获取出库趋势
- */
-async function getOutOrderData(params?){
-  // return defHttp.get({ url: '/bigscreen/todo-tasks', params });
 }
 /**
  * 加载入库趋势
  */
 async function outOrderData() {
-  const result = await getOutOrderData();
-  console.log('records', result)
-  if (result && result.length > 0) {
-    outOrderBarData.value=result;
+  try {
+    outOrderBarData.value = mapMonthlyTrend(await getOutboundTrend());
+  } catch (error) {
+    outOrderBarData.value = [];
   }
-}
-/**
- * 获取货主出库统计
- */
-async function getRankList(params?){
-  // return defHttp.get({ url: '/bigscreen/todo-tasks', params });
 }
 /**
  * 加载货主出库统计
  */
 async function rankListData() {
-  const result = await getRankList();
-  console.log('records', result)
-  if (result && result.length > 0) {
-    rankList.value=result;
+  try {
+    rankList.value = mapOwnerRanking(await getOwnerOutboundRanking());
+  } catch (error) {
+    rankList.value = [];
   }
 }
 

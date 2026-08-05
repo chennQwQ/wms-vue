@@ -1,9 +1,32 @@
 import {BasicColumn} from '/@/components/Table';
 import {FormSchema} from '/@/components/Table';
 import { rules} from '/@/utils/helper/validator';
-import { render } from '/@/utils/common/renderUtils';
 import { getWeekMonthQuarterYear } from '/@/utils';
 import {list} from "@/views/warehouse/WmsStorageLocations.api";
+
+const taskTypeTextMap = {
+  RECEIVING_TASK: '收货任务',
+  PUTAWAY_TASK: '上架任务',
+  PICKING_TASK: '分拣任务',
+  PACKING_TASK: '打包任务',
+};
+
+const taskStatusTextMap = {
+  CREATED: '已创建',
+  ASSIGNED: '已指派',
+  EXECUTING: '执行中',
+  COMPLETED: '已完成',
+  CANCELED: '作废',
+};
+
+function renderTaskType(text) {
+  return taskTypeTextMap[text] || text || '';
+}
+
+function renderTaskStatus(text) {
+  return taskStatusTextMap[text] || text || '';
+}
+
 //列表数据
 export const putawayColumns: BasicColumn[] = [
    {
@@ -14,15 +37,14 @@ export const putawayColumns: BasicColumn[] = [
    {
     title: '任务类型',
     align:"center",
-    dataIndex: 'taskType_dictText',
+    dataIndex: 'taskType',
+    customRender: ({ text }) => renderTaskType(text),
    },
    {
     title: '任务状态',
     align:"center",
-    dataIndex: 'taskStatus_dictText',
-     // customRender: ({text}) => {
-     //   return render.renderDict(text, 'task_status');
-     // }
+    dataIndex: 'taskStatus',
+    customRender: ({ text }) => renderTaskStatus(text),
    },
   {
     title: '仓库名称',
@@ -138,12 +160,14 @@ export const receiveColumns: BasicColumn[] = [
   {
     title: '任务类型',
     align:"center",
-    dataIndex: 'taskType_dictText',
+    dataIndex: 'taskType',
+    customRender: ({ text }) => renderTaskType(text),
   },
   {
     title: '任务状态',
     align:"center",
-    dataIndex: 'taskStatus_dictText',
+    dataIndex: 'taskStatus',
+    customRender: ({ text }) => renderTaskStatus(text),
   },
   //入库单号
   {

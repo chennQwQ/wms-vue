@@ -121,8 +121,8 @@
     */
   function handleEdit(record: Recordable) {
     //收货完成、作废的任务不允许收货
-     if(record.taskStatus == 4 || record.taskStatus == 5){
-       createMessage.warn('收货完成、作废的任务不允许收货')
+     if (record.taskStatus === 'COMPLETED' || record.taskStatus === 'CANCELED') {
+       createMessage.warn('收货完成、作废的任务不允许收货');
        return;
      }
      openModal(true, {

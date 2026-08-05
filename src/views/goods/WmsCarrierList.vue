@@ -4,10 +4,9 @@
    <BasicTable @register="registerTable" :rowSelection="rowSelection">
      <!--插槽:table标题-->
       <template #tableTitle>
-          <a-button type="primary" v-auth="'goods:wms_products:add'" @click="handleAdd" preIcon="ant-design:plus-outlined"> 新增</a-button>
-          <a-button  type="primary" v-auth="'goods:wms_products:exportXls'" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
-          <j-upload-button type="primary" v-auth="'goods:wms_products:importExcel'" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
-          <a-button type="primary" v-auth="'goods:wms_products:exportXls'" preIcon="ant-design:printer-outlined" @click="printBarcodes">打印条码</a-button>
+          <a-button type="primary" v-auth="'goods:wms_carrier:add'" @click="handleAdd" preIcon="ant-design:plus-outlined"> 新增</a-button>
+          <a-button  type="primary" v-auth="'goods:wms_carrier:exportXls'" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
+          <j-upload-button type="primary" v-auth="'goods:wms_carrier:importExcel'" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
           <a-dropdown v-if="selectedRowKeys.length > 0">
               <template #overlay>
                 <a-menu>
@@ -17,7 +16,7 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button v-auth="'goods:wms_products:deleteBatch'">批量操作
+              <a-button v-auth="'goods:wms_carrier:deleteBatch'">批量操作
                 <Icon icon="mdi:chevron-down"></Icon>
               </a-button>
         </a-dropdown>
@@ -33,37 +32,29 @@
       </template>
     </BasicTable>
     <!-- 表单区域 -->
-    <WmsProductsModal @register="registerModal" @success="handleSuccess"></WmsProductsModal>
-    <WmsProductImagesList @register="registerProductImgModal" />
+    <WmsCarrierModal @register="registerModal" @success="handleSuccess"></WmsCarrierModal>
   </div>
 </template>
 
-<script lang="ts" name="goods-wmsProducts" setup>
+<script lang="ts" name="goods-wmsCarrier" setup>
   import {ref, reactive, computed, unref} from 'vue';
   import {BasicTable, useTable, TableAction} from '/@/components/Table';
   import {useModal} from '/@/components/Modal';
   import { useListPage } from '/@/hooks/system/useListPage'
-  import WmsProductsModal from './components/WmsProductsModal.vue'
-  import WmsProductImagesList from './WmsProductImagesList.vue'
-  import {columns, searchFormSchema, superQuerySchema} from './WmsProducts.data';
-  import {list, deleteOne, batchDelete, getImportUrl,getExportUrl} from './WmsProducts.api';
+  import WmsCarrierModal from './components/WmsCarrierModal.vue'
+  import {columns, searchFormSchema, superQuerySchema} from './WmsCarrier.data';
+  import {list, deleteOne, batchDelete, getImportUrl,getExportUrl} from './WmsCarrier.api';
   import { downloadFile } from '/@/utils/common/renderUtils';
   import { useUserStore } from '/@/store/modules/user';
-  import { useMessage } from '/@/hooks/web/useMessage';
-  import { hiprint } from 'sv-print';
-  import productBarcodePanel from '/@/views/printTemplate/productbarcode-panel';
-  import { assertPrintableSelection, selectPrintableRecords } from '/@/views/printTemplate/barcodePrint.utils';
   const queryParam = reactive<any>({});
   const checkedKeys = ref<Array<string | number>>([]);
   const userStore = useUserStore();
-  const { createMessage } = useMessage();
   //注册model
   const [registerModal, {openModal}] = useModal();
-  const [registerProductImgModal, { openModal: productImgOpenModal }] = useModal();
   //注册table数据
   const { prefixCls,tableContext,onExportXls,onImportXls } = useListPage({
       tableProps:{
-           title: '商品信息表',
+           title: '承运商',
            api: list,
            columns,
            canResize:false,
@@ -86,7 +77,7 @@
             },
       },
        exportConfig: {
-            name:"商品信息表",
+            name:"承运商",
             url: getExportUrl,
             params: queryParam,
           },
@@ -165,11 +156,7 @@
          {
            label: '编辑',
            onClick: handleEdit.bind(null, record),
-           auth: 'goods:wms_products:edit'
-         },
-         {
-           label: '商品图片',
-           onClick: handleSeeImg.bind(null, record.id),
+           auth: 'goods:wms_carrier:edit'
          }
        ]
    }
@@ -188,27 +175,10 @@
              confirm: handleDelete.bind(null, record),
              placement: 'topLeft',
            },
-           auth: 'goods:wms_products:delete'
+           auth: 'goods:wms_carrier:delete'
          }
        ]
    }
-
-  function handleSeeImg(id) {
-    productImgOpenModal(true, {
-      productId: id,
-    });
-  }
-
-  function printBarcodes() {
-    try {
-      const records = selectPrintableRecords(rowSelection.selectedRows, 'productBarcode');
-      assertPrintableSelection(records);
-      new hiprint.PrintTemplate({ template: productBarcodePanel }).print(records);
-    } catch (error) {
-      createMessage.error(error instanceof Error ? error.message : '商品条码打印失败');
-    }
-  }
-
 
 
 </script>

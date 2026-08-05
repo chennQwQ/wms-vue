@@ -3,33 +3,46 @@ import {FormSchema} from '/@/components/Table';
 import { rules} from '/@/utils/helper/validator';
 import { render } from '/@/utils/common/renderUtils';
 import { getWeekMonthQuarterYear } from '/@/utils';
+import { useGlobSetting } from '/@/hooks/setting';
+import { buildPreviewImageUrl } from './fileUrl.utils';
+
+const glob = useGlobSetting();
 //列表数据
 export const columns: BasicColumn[] = [
-   {
-    title: '商品id',
-    align:"center",
-    dataIndex: 'productId'
-   },
+   // {
+   //  title: '商品id',
+   //  align:"center",
+   //  dataIndex: 'productId'
+   // },
    {
     title: '原始图片地址',
     align:"center",
-    dataIndex: 'original'
+    dataIndex: 'original',
+     customRender: ({ text }) => {
+       if(!text){
+         return text;
+       }
+       return render.renderImage({ text: buildPreviewImageUrl(text, glob.uploadUrl) });
+     },
    },
    {
     title: '是否默认图片',
     align:"center",
-    dataIndex: 'isDefault'
+    dataIndex: 'isDefault',
+     customRender: ({ text }) => {
+       return text === '1' ? '是' : '否';
+     },
    },
-   {
-    title: '小图路径',
-    align:"center",
-    dataIndex: 'small'
-   },
-   {
-    title: '缩略图路径',
-    align:"center",
-    dataIndex: 'thumbnail'
-   },
+   // {
+   //  title: '小图路径',
+   //  align:"center",
+   //  dataIndex: 'small'
+   // },
+   // {
+   //  title: '缩略图路径',
+   //  align:"center",
+   //  dataIndex: 'thumbnail'
+   // },
 ];
 //查询数据
 export const searchFormSchema: FormSchema[] = [
@@ -40,27 +53,42 @@ export const formSchema: FormSchema[] = [
     label: '商品id',
     field: 'productId',
     component: 'Input',
+    show:false
   },
   {
-    label: '原始图片地址',
+    label: '图片地址',
     field: 'original',
-    component: 'Input',
+    component: 'JImageUpload',
   },
   {
     label: '是否默认图片',
     field: 'isDefault',
-    component: 'Input',
+    component: 'RadioGroup',
+    componentProps: {
+      options: [
+        {
+          label: '是',
+          value: '1',
+        },
+        {
+          label: '否',
+          value: '0',
+        },
+      ],
+    },
   },
-  {
-    label: '小图路径',
-    field: 'small',
-    component: 'Input',
-  },
-  {
-    label: '缩略图路径',
-    field: 'thumbnail',
-    component: 'Input',
-  },
+  // {
+  //   label: '小图路径',
+  //   field: 'small',
+  //   component: 'Input',
+  //   show:false
+  // },
+  // {
+  //   label: '缩略图路径',
+  //   field: 'thumbnail',
+  //   component: 'Input',
+  //   show:false
+  // },
 	// TODO 主键隐藏字段，目前写死为ID
 	{
 	  label: '',

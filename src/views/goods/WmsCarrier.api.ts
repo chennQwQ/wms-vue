@@ -4,13 +4,13 @@ import { useMessage } from "/@/hooks/web/useMessage";
 const { createConfirm } = useMessage();
 
 enum Api {
-  list = '/warehouse/wmsStorageLocations/list',
-  save='/warehouse/wmsStorageLocations/add',
-  edit='/warehouse/wmsStorageLocations/edit',
-  deleteOne = '/warehouse/wmsStorageLocations/delete',
-  deleteBatch = '/warehouse/wmsStorageLocations/deleteBatch',
-  importExcel = '/warehouse/wmsStorageLocations/importExcel',
-  exportXls = '/warehouse/wmsStorageLocations/exportXls',
+  list = '/goods/wmsCarrier/list',
+  save='/goods/wmsCarrier/add',
+  edit='/goods/wmsCarrier/edit',
+  deleteOne = '/goods/wmsCarrier/delete',
+  deleteBatch = '/goods/wmsCarrier/deleteBatch',
+  importExcel = '/goods/wmsCarrier/importExcel',
+  exportXls = '/goods/wmsCarrier/exportXls',
 }
 /**
  * 导出api
@@ -27,14 +27,6 @@ export const getImportUrl = Api.importExcel;
  */
 export const list = (params) =>
   defHttp.get({url: Api.list, params});
-/**
- * 拣货储位列表接口
- * @param params
- */
-export const listByPickType = (params) =>{
-  params['locationType']='PICKING_LOC';
-  return defHttp.get({url: Api.list, params});
-}
 
 /**
  * 删除单个

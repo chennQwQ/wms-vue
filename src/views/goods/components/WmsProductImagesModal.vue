@@ -33,6 +33,10 @@
             await setFieldsValue({
                 ...data.record,
             });
+        } else if (data?.productId) {
+            await setFieldsValue({
+                productId: data.productId,
+            });
         }
         // 隐藏底部时禁用整个表单
        setProps({ disabled: !data?.showFooter })

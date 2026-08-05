@@ -47,17 +47,21 @@ const userStore = useUserStore();
    *加载仓库信息
    */
   async function loadWarehousesList() {
-    const result = await getWarehouses();
-    console.log('result', result)
-    if (!result.records || result.records.length == 0) {
-      createMessage.warn('请进入仓库管理菜单添加仓库')
-      return;
+    try {
+      const result = await getWarehouses();
+      if (!result.records || result.records.length == 0) {
+        createMessage.warn('请进入仓库管理菜单添加仓库')
+        return;
+      }
+      warehousesList.value = result.records;
+      if(!unref(warehousesSelected)){
+        warehousesSelected.value = result.records[0].id;
+      }
+      handleChange();
+    } catch (error) {
+      warehousesList.value = [];
+      createMessage.error('仓库列表加载失败');
     }
-    warehousesList.value = result.records;
-    if(!unref(warehousesSelected)){
-      warehousesSelected.value = result.records[0].id;
-    }
-    handleChange();
   }
 /**
  *  change事件
@@ -68,10 +72,10 @@ function handleChange() {
     userStore.setWarehouse(unref(warehousesSelected));
   }
   //调用子组件方法
-  bigScreenRef.value.todoTaskList();
-  bigScreenRef.value.inOrderData();
-  bigScreenRef.value.outOrderData();
-  bigScreenRef.value.rankListData();
+  bigScreenRef.value?.todoTaskList();
+  bigScreenRef.value?.inOrderData();
+  bigScreenRef.value?.outOrderData();
+  bigScreenRef.value?.rankListData();
 }
 
   const indexStyle = ref(2);

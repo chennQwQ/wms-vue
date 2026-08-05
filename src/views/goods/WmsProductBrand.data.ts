@@ -3,6 +3,10 @@ import {FormSchema} from '/@/components/Table';
 import { rules} from '/@/utils/helper/validator';
 import { render } from '/@/utils/common/renderUtils';
 import { getWeekMonthQuarterYear } from '/@/utils';
+import { useGlobSetting } from '/@/hooks/setting';
+import { buildPreviewImageUrl } from './fileUrl.utils';
+
+const glob = useGlobSetting();
 //列表数据
 export const columns: BasicColumn[] = [
    {
@@ -13,12 +17,21 @@ export const columns: BasicColumn[] = [
    {
     title: '品牌logo',
     align:"center",
-    dataIndex: 'logo'
+    dataIndex: 'logo',
+     customRender: ({ text }) => {
+       if(!text){
+         return text;
+       }
+       return render.renderImage({ text: buildPreviewImageUrl(text, glob.uploadUrl) });
+     },
    },
    {
     title: '状态',
     align:"center",
-    dataIndex: 'status'
+    dataIndex: 'status',
+     customRender: ({text}) => {
+       return render.renderDict(text, 'wms_status');
+     }
    },
 ];
 //查询数据
@@ -39,22 +52,20 @@ export const formSchema: FormSchema[] = [
   {
     label: '品牌logo',
     field: 'logo',
-    component: 'Input',
-    dynamicRules: ({model,schema}) => {
-          return [
-                 { required: true, message: '请输入品牌logo!'},
-          ];
-     },
+    component: 'JImageUpload',
   },
   {
     label: '状态',
     field: 'status',
-    component: 'Input',
+    component: 'JDictSelectTag',
+    componentProps:{
+      dictCode:"wms_status",
+    },
     dynamicRules: ({model,schema}) => {
-          return [
-                 { required: true, message: '请输入状态!'},
-          ];
-     },
+      return [
+        { required: true, message: '请输入状态!'},
+      ];
+    },
   },
 	// TODO 主键隐藏字段，目前写死为ID
 	{

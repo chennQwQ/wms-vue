@@ -7,6 +7,7 @@
           <a-button type="primary" v-auth="'warehouse:wms_storage_locations:add'" @click="handleAdd" preIcon="ant-design:plus-outlined"> 新增</a-button>
           <a-button  type="primary" v-auth="'warehouse:wms_storage_locations:exportXls'" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
           <j-upload-button type="primary" v-auth="'warehouse:wms_storage_locations:importExcel'" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
+          <a-button type="primary" v-auth="'warehouse:wms_storage_locations:exportXls'" preIcon="ant-design:printer-outlined" @click="printBarcodes">打印条码</a-button>
           <a-dropdown v-if="selectedRowKeys.length > 0">
               <template #overlay>
                 <a-menu>
@@ -46,9 +47,18 @@
   import {list, deleteOne, batchDelete, getImportUrl,getExportUrl} from './WmsStorageLocations.api';
   import { downloadFile } from '/@/utils/common/renderUtils';
   import { useUserStore } from '/@/store/modules/user';
+  import { useMessage } from '/@/hooks/web/useMessage';
+  import { hiprint } from 'sv-print';
+  import storageLocationBarcodePanel from '/@/views/printTemplate/storageLocationBarcode-panel';
+  import {
+    assertPrintableSelection,
+    mapStorageLocationPrintRecord,
+    selectPrintableRecords,
+  } from '/@/views/printTemplate/barcodePrint.utils';
   const queryParam = reactive<any>({});
   const checkedKeys = ref<Array<string | number>>([]);
   const userStore = useUserStore();
+  const { createMessage } = useMessage();
   //注册model
   const [registerModal, {openModal}] = useModal();
   //注册table数据
@@ -179,6 +189,16 @@
          }
        ]
    }
+
+  function printBarcodes() {
+    try {
+      const records = selectPrintableRecords(rowSelection.selectedRows, 'locationCode').map(mapStorageLocationPrintRecord);
+      assertPrintableSelection(records);
+      new hiprint.PrintTemplate({ template: storageLocationBarcodePanel }).print(records);
+    } catch (error) {
+      createMessage.error(error instanceof Error ? error.message : '储位条码打印失败');
+    }
+  }
 
 
 

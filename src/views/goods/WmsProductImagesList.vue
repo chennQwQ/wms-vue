@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <BasicModal @register="registerModal2" title="商品图片" @ok="handleSubmit" width="1000px">
     <!--引用表格-->
    <BasicTable @register="registerTable" :rowSelection="rowSelection">
      <!--插槽:table标题-->
-      <template #tableTitle>
-          <a-button type="primary" v-auth="'goods:wms_product_images:add'" @click="handleAdd" preIcon="ant-design:plus-outlined"> 新增</a-button>
-          <a-button  type="primary" v-auth="'goods:wms_product_images:exportXls'" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
-          <j-upload-button type="primary" v-auth="'goods:wms_product_images:importExcel'" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
+      <template #tableTitle >
+          <a-button type="primary"  @click="handleAdd" preIcon="ant-design:plus-outlined"> 新增</a-button>
+<!--          <a-button  type="primary" v-auth="'goods:wms_product_images:exportXls'" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
+          <j-upload-button type="primary" v-auth="'goods:wms_product_images:importExcel'" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>-->
           <a-dropdown v-if="selectedRowKeys.length > 0">
               <template #overlay>
                 <a-menu>
@@ -21,11 +21,11 @@
               </a-button>
         </a-dropdown>
         <!-- 高级查询 -->
-        <super-query :config="superQueryConfig" @search="handleSuperQuery" />
+<!--        <super-query :config="superQueryConfig" @search="handleSuperQuery" />-->
       </template>
        <!--操作栏-->
       <template #action="{ record }">
-        <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)"/>
+        <TableAction :actions="getTableAction(record)" />
       </template>
       <!--字段回显插槽-->
       <template v-slot:bodyCell="{ column, record, index, text }">
@@ -33,13 +33,13 @@
     </BasicTable>
     <!-- 表单区域 -->
     <WmsProductImagesModal @register="registerModal" @success="handleSuccess"></WmsProductImagesModal>
-  </div>
+  </BasicModal>
 </template>
 
 <script lang="ts" name="goods-wmsProductImages" setup>
   import {ref, reactive, computed, unref} from 'vue';
   import {BasicTable, useTable, TableAction} from '/@/components/Table';
-  import {useModal} from '/@/components/Modal';
+  import {BasicModal, useModal, useModalInner} from '/@/components/Modal';
   import { useListPage } from '/@/hooks/system/useListPage'
   import WmsProductImagesModal from './components/WmsProductImagesModal.vue'
   import {columns, searchFormSchema, superQuerySchema} from './WmsProductImages.data';
@@ -88,7 +88,12 @@
   })
 
   const [registerTable, {reload},{ rowSelection, selectedRowKeys }] = tableContext
-
+  //表单赋值
+  const [registerModal2, { setModalProps, closeModal }] = useModalInner(async (data) => {
+    queryParam.productId = data.productId;
+    selectedRowKeys.value = [];
+    reload();
+  });
   // 高级查询配置
   const superQueryConfig = reactive(superQuerySchema);
 
@@ -106,6 +111,7 @@
     */
   function handleAdd() {
      openModal(true, {
+       productId: queryParam.productId,
        isUpdate: false,
        showFooter: true,
      });
@@ -130,6 +136,10 @@
        showFooter: false,
      });
    }
+  //表单提交事件
+  async function handleSubmit(v) {
+    closeModal();
+  }
    /**
     * 删除事件
     */
@@ -156,12 +166,20 @@
          {
            label: '编辑',
            onClick: handleEdit.bind(null, record),
-           auth: 'goods:wms_product_images:edit'
+         },
+         {
+           label: '删除',
+           popConfirm: {
+             title: '是否确认删除',
+             confirm: handleDelete.bind(null, record),
+             placement: 'topLeft',
+           }
          }
+
        ]
    }
      /**
-        * 下拉操作栏
+        * 下拉操作栏 暂时不用
         */
   function getDropDownAction(record){
        return [
@@ -179,7 +197,6 @@
          }
        ]
    }
-
 
 
 </script>

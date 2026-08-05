@@ -80,7 +80,7 @@ export const enable = (params, handleSuccess) =>{
     cancelText: '取消',
     onOk: () => {
       return defHttp.put({url: Api.enable, data: params}, {joinParamsToUrl: true}).then(() => {
-        handleSuccess;
+        handleSuccess();
       })
     }
   })
@@ -99,7 +99,7 @@ export const disable = (params, handleSuccess) =>{
     cancelText: '取消',
     onOk: () => {
       return defHttp.put({url: Api.disable, data: params}, {joinParamsToUrl: true}).then(() => {
-        handleSuccess;
+        handleSuccess();
       })
     }
   })

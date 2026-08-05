@@ -1,6 +1,6 @@
 <template>
-  <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="896" @ok="handleSubmit">
-      <BasicForm @register="registerForm" name="WmsStorageLocationsForm" />
+  <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800" @ok="handleSubmit">
+      <BasicForm @register="registerForm" name="WmsPackagingMaterialForm" />
   </BasicModal>
 </template>
 
@@ -8,16 +8,15 @@
     import {ref, computed, unref} from 'vue';
     import {BasicModal, useModalInner} from '/@/components/Modal';
     import {BasicForm, useForm} from '/@/components/Form/index';
-    import {formSchema} from '../WmsStorageLocations.data';
-    import {saveOrUpdate} from '../WmsStorageLocations.api';
-    import {list as storageZone} from "@/views/warehouse/WmsStorageZones.api";
-    import { mapZoneOptions } from '../storageLocationOptions.utils';
+    import {formSchema} from '../WmsPackagingMaterial.data';
+    import {saveOrUpdate} from '../WmsPackagingMaterial.api';
     // Emits声明
     const emit = defineEmits(['register','success']);
     const isUpdate = ref(true);
     const isDetail = ref(false);
     //表单配置
-    const [registerForm, { setProps,resetFields, setFieldsValue, validate, scrollToField, updateSchema }] = useForm({
+    const [registerForm, { setProps,resetFields, setFieldsValue, validate, scrollToField }] = useForm({
+        labelWidth: 150,
         schemas: formSchema,
         showActionButtonGroup: false,
         baseColProps: {span: 12}
@@ -34,9 +33,6 @@
             await setFieldsValue({
                 ...data.record,
             });
-          const response = await storageZone({ warehouseId: data.record.warehouseId, pageNo: 1, pageSize: 999 });
-          await updateSchema({ field: 'zoneId', componentProps: { options: mapZoneOptions(response) } });
-          await setFieldsValue({ zoneId: data.record.zoneId });
         }
         // 隐藏底部时禁用整个表单
        setProps({ disabled: !data?.showFooter })

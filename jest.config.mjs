@@ -27,7 +27,9 @@ export default {
     '\\?worker$': '<rootDir>/tests/__mocks__/workerMock.ts',
     '^/@/(.*)$': '<rootDir>/src/$1',
   },
-  testEnvironment: 'jsdom',
+  // Current suites exercise pure TypeScript helpers and API contracts.
+  // Keep the runner dependency-free; component tests can opt into jsdom per file.
+  testEnvironment: 'node',
   verbose: true,
   collectCoverage: false,
   coverageDirectory: 'coverage',
