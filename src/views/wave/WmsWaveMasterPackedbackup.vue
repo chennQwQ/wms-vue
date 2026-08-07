@@ -315,7 +315,7 @@
   const sdkCallback = result => {};
   const sdkParams = {
     env: "sbox", // 生产：pro；沙箱：sbox。不传默认生产，转生产需要修改这里
-    partnerID: "Y2VL6F82",
+    partnerID: "YYUIJVX3",
     callback: sdkCallback,
     notips: false
   };
@@ -356,7 +356,7 @@
     const data = {
       requestID: "11133",
       accessToken: "EB767051A8764E3DA1611716AAE13FBA",
-      templateCode: "fm_150_standard_Y2VL6F82",
+      templateCode: "fm_150_standard_YYUIJVX3",
       templateVersion: "",
       documents: [
         {

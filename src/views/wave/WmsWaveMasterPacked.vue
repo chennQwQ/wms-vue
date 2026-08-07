@@ -45,8 +45,6 @@
     </div>
     <!-- 表单区域 -->
     <WmsWaveMasterModal @register="registerModal" @success="handleSuccess"></WmsWaveMasterModal>
-    <!--创建波次选择波次策略表单-->
-    <WmsWaveSfPrintModal @register="registerSfModal" @success="handleSuccess"></WmsWaveSfPrintModal>
   </div>
 </template>
 
@@ -57,11 +55,9 @@ import {BasicTable, useTable, TableAction} from '/@/components/Table';
 import {useListPage} from '/@/hooks/system/useListPage'
 import {useModal} from '/@/components/Modal';
 import WmsWaveMasterModal from './components/WmsWaveMasterModal.vue'
-import WmsWaveSfPrintModal from './components/WmsWaveSfPrintModal.vue'
 import {useUserStore} from '/@/store/modules/user';
 import WmsOutOrdersList from './WmsOutOrdersList.vue'
 import {columns, searchFormSchema, superQuerySchema} from './WmsWaveMaster.data';
-import {getLodop} from '/@/assets/LodopFuncs' //导入模块
 import {
   list,
   deleteOne,
@@ -72,12 +68,10 @@ import {
 } from './WmsWaveMaster.api';
 import {downloadFile} from '/@/utils/common/renderUtils';
 import {useMessage} from "@/hooks/web/useMessage";
-import '/@/assets/SCPPrint.js'
 
 const queryParam = reactive<any>({});
 //注册model
 const [registerModal, {openModal}] = useModal();
-const [registerSfModal, {openModal: openSfModal}] = useModal();
 const {createMessage} = useMessage();
 //注册table数据
 const {prefixCls, tableContext, onExportXls, onImportXls} = useListPage({
@@ -125,8 +119,6 @@ provide('mainId', mainId);
 
 // 高级查询配置
 const superQueryConfig = reactive(superQuerySchema);
-//打印机
-const pcData = [];
 
 /**
  * 高级查询事件
@@ -139,7 +131,7 @@ function handleSuperQuery(params) {
 }
 
 /**
- * 打印面单
+ * 打印面单：后端返回pdf，浏览器打开预览后打印
  */
 function printWaybills() {
   if (selectedRowKeys.value.length === 0) {
@@ -151,18 +143,16 @@ function printWaybills() {
     createMessage.warn('一次只能选择一个波次')
     return;
   }
-  //请求后台获取token及运单号
+  //请求后台获取面单pdf
   printWaybill({waveId: selectedRowKeys.value[0]}, function (res) {
-    console.log(res.waybillNos)
-    console.log(res.token)
-    openSfModal(true, {
-      waybillNos: res.waybillNos,
-      token: res.token,
-      isUpdate: false,
-      showFooter: true,
-    });
+    if (!res) {
+      createMessage.warn('未获取到面单数据')
+      return;
+    }
+    const blob = new Blob([res], {type: 'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   })
-
 }
 
 /**

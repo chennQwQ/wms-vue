@@ -17,7 +17,6 @@ import { ArrowRightOutlined } from '@ant-design/icons-vue';
 import { useRouter } from 'vue-router'
 import xss from 'xss'
 // import { options } from './XssWhiteList'
-import { getLodop } from '/@/assets/LodopFuncs' //导入模块
 const router = useRouter()
 import inorderPanel from "/@/views/printTemplate/inorder-panel";
 import {useMessage} from "@/hooks/web/useMessage";
@@ -33,6 +32,9 @@ const printWaybillsParams = {token:"",documents: [] as DocumentItem[]}
 const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
   // console.log('打印参数',data)
   printWaybillsParams.token=data.token;
+  printWaybillsParams.documents = [];
+  //打开弹窗时初始化打印机列表
+  CreatePrinterList();
   //运单号数组
   let waybillNos = data.waybillNos;
   //将运单号数组构造成如下格式
@@ -83,30 +85,51 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
 });
 const { createMessage } = useMessage();
 //打印机
-const pcData = [];
+const pcData = ref<Array<{id:number, pcName:string}>>([]);
 const selectedPrinter = ref<string>("")
 const hasHref = ref(false)
 
 function CreatePrinterList(){
-  let LODOP=getLodop();
-  var iPrinterCount=LODOP.GET_PRINTER_COUNT();
-  //创建pcData数组，无数数量为iPrinterCount
-  for(var i=0;i<iPrinterCount;i++){
-    //pcData添加元素
-    pcData[i]={"id":i,"pcName":LODOP.GET_PRINTER_NAME(i)};
-  }
+  //使用顺丰SDK自带的打印机列表接口，避免依赖外部Lodop脚本
+  const sdk = getPrintSdk();
+  let settled = false;
+  const finish = () => { settled = true; };
+  const timeout = window.setTimeout(() => {
+    if(!settled){
+      createMessage.warn('未检测到本机C-Lodop打印服务，请先安装并启动后再试');
+    }
+  }, 5000);
+  sdk.getPrinters((result) => {
+    window.clearTimeout(timeout);
+    finish();
+    if(!result || result.code !== 1 || !result.printers){
+      if(result && result.msg){
+        createMessage.warn(result.msg);
+      }
+      return;
+    }
+    const list: Array<{id:number, pcName:string}> = result.printers.map((p) => ({
+      id: p.index,
+      pcName: p.name
+    }));
+    pcData.value = list;
+  });
 }
-CreatePrinterList();
 
+let printSdk = null;
 // 引入SDK后初始化实例，仅执行一次
-const sdkCallback = result => {};
-const sdkParams = {
-  env: "sbox", // 生产：pro；沙箱：sbox。不传默认生产，转生产需要修改这里
-  partnerID: "Y2VL6F82",
-  callback: sdkCallback,
-  notips: false
-};
-const printSdk = new SCPPrint(sdkParams);
+function getPrintSdk(){
+  if(printSdk) return printSdk;
+  const sdkCallback = result => {};
+  const sdkParams = {
+    env: "sbox", // 生产：pro；沙箱：sbox。不传默认生产，转生产需要修改这里
+    partnerID: "YYUIJVX3",
+    callback: sdkCallback,
+    notips: false
+  };
+  printSdk = new SCPPrint(sdkParams);
+  return printSdk;
+}
 function generateSerial() {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substr(2, 5);
@@ -119,11 +142,12 @@ function print() {
     createMessage.warn('请选择打印机')
     return;
   }
-  printSdk.setPrinter(selectedPrinter.value);
+  const sdk = getPrintSdk();
+  sdk.setPrinter(selectedPrinter.value);
   const data = {
     requestID: generateSerial(),
     accessToken: printWaybillsParams.token,
-    templateCode: "fm_150_standard_Y2VL6F82",
+    templateCode: "fm_150_standard_YYUIJVX3",
     templateVersion: "",
     documents: printWaybillsParams.documents,
     // documents: [
@@ -148,60 +172,10 @@ function print() {
   const options = {
     lodopFn: "PRINT" // 默认打印，预览传PREVIEW
   };
-  printSdk.print(data, callback, options);
+  sdk.print(data, callback, options);
 }
 
 // 打印面单 printWaybills
-function printWaybills2() {
-  if(selectedPrinter.value==""){
-    createMessage.warn('请选择打印机')
-    return;
-  }
-  let LODOP = getLodop()//调用getLodop获取LODOP对象
-  //打印任务名称
-  LODOP.PRINT_INIT("测试PDF打印功能")
-  // LODOP.SET_PRINTER_INDEX(0);
-  LODOP.ADD_PRINT_PDF(0,0,"100%","100%",demoDownloadPDF("http://localhost:3100/pdf"));
-  LODOP.SET_PRINT_PAGESIZE(3,0,0,"");//纸张设置为自定义模式
-  LODOP.SET_PRINT_STYLEA(0,"PDFScalMode",1);//参数值含义：0-缩小大页面 、1-实际大小（选它）、2-适合纸张
-  LODOP.PREVIEW();
-}
-function demoGetBASE64(dataArray) {
-  var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-  var strData = "";
-  for (var i = 0, ii = dataArray.length; i < ii; i += 3) {
-    if (isNaN(dataArray[i])) break;
-    var b1 = dataArray[i] & 0xFF, b2 = dataArray[i + 1] & 0xFF, b3 = dataArray[i + 2] & 0xFF;
-    var d1 = b1 >> 2, d2 = ((b1 & 3) << 4) | (b2 >> 4);
-    var d3 = i + 1 < ii ? ((b2 & 0xF) << 2) | (b3 >> 6) : 64;
-    var d4 = i + 2 < ii ? (b3 & 0x3F) : 64;
-    strData += digits.substring(d1, d1 + 1) + digits.substring(d2, d2 + 1) + digits.substring(d3, d3 + 1) + digits.substring(d4, d4 + 1);
-  }
-  console.log(strData);
-  return strData;
-}
-function demoDownloadPDF(url){
-  if (!(/^https?:/i.test(url))) return;
-  if (window.XMLHttpRequest) var xhr = new XMLHttpRequest(); else var xhr = new ActiveXObject("MSXML2.XMLHTTP");
-  xhr.open('GET',url,false); //同步方式
-  if (xhr.overrideMimeType)
-    try{
-      xhr.responseType = 'arraybuffer';
-      var arrybuffer=true;
-    }catch(err){
-      xhr.overrideMimeType('text/plain; charset=x-user-defined');
-    }
-  xhr.send(null);
-  var data = xhr.response || xhr.responseBody;
-  if (typeof Uint8Array !== 'undefined') {
-    if (arrybuffer) var dataArray = new Uint8Array(data); else {
-      var dataArray = new Uint8Array(data.length);
-      for (var i = 0; i < dataArray.length; i++) {dataArray[i] = data.charCodeAt(i);}
-    }
-  } else
-    var dataArray = VBS_BinaryToArray(data).toArray(); //兼容IE低版本
-  return demoGetBASE64(dataArray);
-}
 </script>
 <style id="style1">
 @media print {

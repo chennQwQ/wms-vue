@@ -112,10 +112,10 @@ export const listByCompleted = (params) =>{
 }
 
 /**
- * 打印运单
+ * 打印运单：后端返回pdf字节流
  */
-export const printWaybill = (params,handleSuccess) => {
-  return defHttp.get({url: Api.printWaybill, params}).then((result) => {
+export const printWaybill = (params, handleSuccess) => {
+  return defHttp.get({url: Api.printWaybill, params, responseType: 'blob'}, { isTransformResponse: false }).then((result) => {
     handleSuccess(result);
   });
 }
